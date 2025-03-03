@@ -1,6 +1,8 @@
 package error
 
-import "errors"
+import (
+	"errors"
+)
 
 type TemplateError interface {
 	Code() string

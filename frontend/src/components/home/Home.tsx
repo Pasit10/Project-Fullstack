@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { auth } from "../../../utils/firebase"; // Firebase auth
+import { auth } from "../../utils/firebase"; // Firebase auth
 import { signOut, getIdToken } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
+import axiosInstant from "../../utils/axios";
 
 const Home = () => {
   const [userData, setUserData] = useState(null);
@@ -11,23 +12,23 @@ const Home = () => {
   useEffect(() => {
     const fetchProtectedData = async () => {
       try {
-        const user = auth.currentUser;
-        if (!user) {
-          navigate("/"); // Redirect if not logged in
-          return;
-        }
+        // const user = auth.currentUser;
+        // if (!user) {
+        //   navigate("/"); // Redirect if not logged in
+        //   return;
+        // }
 
         // Get Firebase JWT token
-        const token = await getIdToken(user);
+        // const token = await getIdToken(user);
 
         // Fetch protected data from FastAPI
-        const response = await fetch("http://127.0.0.1:3000/api/test", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const response = await axiosInstant("/user", {
+          withCredentials: true,
+        })
 
-        if (!response.ok) throw new Error("Failed to fetch protected data");
+        if (response.status !== 200) throw new Error("Failed to fetch protected data");
 
-        const data = await response.json();
+        const data = await response.data;
         setUserData(data);
       } catch (err) {
         console.error("Error:", err);

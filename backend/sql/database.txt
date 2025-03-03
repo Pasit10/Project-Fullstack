@@ -1,0 +1,9 @@
+CREATE TABLE users (
+    uid VARCHAR(255) PRIMARY KEY,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password TEXT NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    picture LONGBLOB,
+    address TEXT,
+    role VARCHAR(50) NOT NULL
+);
