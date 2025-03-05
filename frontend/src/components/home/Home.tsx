@@ -1,6 +1,4 @@
 import { useEffect, useState } from "react";
-import { auth } from "../../utils/firebase"; // Firebase auth
-import { signOut, getIdToken } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 import axiosInstant from "../../utils/axios";
 
@@ -41,8 +39,11 @@ const Home = () => {
 
   // Logout function
   const handleLogout = async () => {
-    await signOut(auth);
     navigate("/"); // Redirect to login
+    const response = await axiosInstant.get("/logout" , {withCredentials:true})
+    if (response.status !== 200) {
+      throw new Error("Failed to fetch protected data");
+    }
   };
 
   return (

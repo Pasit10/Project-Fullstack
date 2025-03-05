@@ -4,14 +4,14 @@ import (
 	"context"
 	"strings"
 
-	"backend/config" // Update this with your actual project path
+	"backend/pkg/database" // Update this with your actual project path
 
 	"github.com/gofiber/fiber/v2"
 )
 
 // FirebaseAuthMiddleware validates Firebase JWT token
 func FirebaseAuthMiddleware(c *fiber.Ctx) error {
-	firebaseAuth := config.FB.AuthDatabase
+	firebaseAuth := database.FB.AuthDatabase
 	if firebaseAuth == nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Firebase not initialized"})
 	}

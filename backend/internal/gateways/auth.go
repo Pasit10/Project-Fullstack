@@ -1,7 +1,8 @@
-package authenticaion
+package gateways
 
 import (
 	templateError "backend/error"
+	"backend/internal/entities"
 	"backend/middlewares"
 	"time"
 
@@ -9,24 +10,13 @@ import (
 	"github.com/google/uuid"
 )
 
-type AuthenEndpoint struct {
-	AuthenLogic *AuthenLogic
-}
-
-func InitAuthenEndpoint() *AuthenEndpoint {
-	logic := &AuthenLogic{}
-	return &AuthenEndpoint{
-		AuthenLogic: logic.InitAuthenLogic(),
-	}
-}
-
-func (ae *AuthenEndpoint) Login(c *fiber.Ctx) error {
-	var req UserLogin
+func (h HTTPGateway) Login(c *fiber.Ctx) error {
+	var req entities.UserLogin
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid input"})
 	}
 
-	isValid, user, err := ae.AuthenLogic.LoginLogic(req)
+	isValid, user, err := h.AuthService.Login(req)
 	if err != nil {
 		httpStatusCode, errorResponse := templateError.GetErrorResponse(err)
 		return c.Status(httpStatusCode).JSON(errorResponse)
@@ -53,14 +43,14 @@ func (ae *AuthenEndpoint) Login(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"message": "Login successful"})
 }
 
-func (ae *AuthenEndpoint) Register(c *fiber.Ctx) error {
-	var req User
+func (h HTTPGateway) Register(c *fiber.Ctx) error {
+	var req entities.User
 	req.UID = uuid.New().String()
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid input"})
 	}
 	req.Role = "user"
-	err := ae.AuthenLogic.RegisterLogic(req)
+	err := h.AuthService.Register(req)
 	if err != nil {
 		httpStatusCode, errorResponse := templateError.GetErrorResponse(err)
 		return c.Status(httpStatusCode).JSON(errorResponse)
@@ -82,7 +72,7 @@ func (ae *AuthenEndpoint) Register(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{"message": "User created"})
 }
 
-func (ae *AuthenEndpoint) Logout(c *fiber.Ctx) error {
+func (h HTTPGateway) Logout(c *fiber.Ctx) error {
 	// Clear the JWT cookie
 	c.Cookie(&fiber.Cookie{
 		Name:     "jwt",
@@ -93,13 +83,13 @@ func (ae *AuthenEndpoint) Logout(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"message": "Logout successful"})
 }
 
-func (ae *AuthenEndpoint) RegisterWithGoogle(c *fiber.Ctx) error {
+func (h HTTPGateway) RegisterWithGoogle(c *fiber.Ctx) error {
 	uid := c.Locals("uid").(string)
 	email := c.Locals("email").(string)
 	name := c.Locals("name").(string)
 	picture := c.Locals("picture").(string)
 
-	var req = User{
+	var req = entities.User{
 		UID:     uid,
 		Email:   email,
 		Name:    name,
@@ -107,7 +97,7 @@ func (ae *AuthenEndpoint) RegisterWithGoogle(c *fiber.Ctx) error {
 		Role:    "user",
 	}
 	req.Role = "user"
-	err := ae.AuthenLogic.RegisterGoogleLogic(req)
+	err := h.AuthService.RegisterGoogle(req)
 	if err != nil {
 		httpStatusCode, errorResponse := templateError.GetErrorResponse(err)
 		return c.Status(httpStatusCode).JSON(errorResponse)
@@ -129,9 +119,9 @@ func (ae *AuthenEndpoint) RegisterWithGoogle(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{"message": "User created"})
 }
 
-func (ae *AuthenEndpoint) LoginWithGoogle(c *fiber.Ctx) error {
+func (h HTTPGateway) LoginWithGoogle(c *fiber.Ctx) error {
 	uid := c.Locals("uid").(string)
-	user, err := ae.AuthenLogic.GetUserByUID(uid)
+	user, err := h.AuthService.GetUserByUID(uid)
 	if err != nil {
 		httpStatusCode, errorResponse := templateError.GetErrorResponse(err)
 		return c.Status(httpStatusCode).JSON(errorResponse)

@@ -1,4 +1,9 @@
-package users
+package entities
+
+type UserLogin struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
 
 type User struct {
 	UID      string `json:"uid"`

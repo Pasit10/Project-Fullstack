@@ -1,9 +1,11 @@
 package main
 
 import (
-	"backend/config"
-	"backend/handlers"
+	"backend/internal/gateways"
+	repo "backend/internal/repositories"
+	ser "backend/internal/services"
 	"backend/middlewares"
+	"backend/pkg/database"
 	"fmt"
 	"os"
 
@@ -20,11 +22,8 @@ func main() {
 	}
 
 	app := fiber.New()
-
-	// SetUp Database
-	config.InitDatabaseConnection()
-	config.InitFirebase()
-
+	app.Use(middlewares.NewLogger())
+	// app.Use(cors.New())
 	app.Use(cors.New(cors.Config{
 		AllowOrigins:     "http://localhost:3000, http://localhost:5173",
 		AllowCredentials: true,
@@ -32,9 +31,15 @@ func main() {
 		AllowHeaders:     "Content-Type, Authorization",
 	}))
 
-	app.Use(middlewares.NewLogger())
+	// SetUp Database
+	mysql := database.InitDatabaseConnection()
+	// config.InitFirebase()
 
-	handlers.InitRoutes(app)
+	authRepo := repo.InitAuthRepository(mysql)
+
+	authService := ser.InitAuthenService(authRepo)
+
+	gateways.InitHTTPGateway(app, authService)
 
 	PORT := os.Getenv("SERVER_PORT")
 	if PORT == "" {

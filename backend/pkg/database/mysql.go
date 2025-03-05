@@ -1,4 +1,4 @@
-package config
+package database
 
 import (
 	"fmt"
@@ -9,13 +9,7 @@ import (
 	"gorm.io/gorm"
 )
 
-type DB struct {
-	DB *gorm.DB
-}
-
-var DataBase DB
-
-func InitDatabaseConnection() {
+func InitDatabaseConnection() *gorm.DB {
 	ConnectionMasterDB := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=true",
 		os.Getenv("DATABASE_USER"),
 		os.Getenv("DATABASE_PASSWORD"),
@@ -29,5 +23,5 @@ func InitDatabaseConnection() {
 		log.Fatalf("[Database] Failed to connect to database: %s", err.Error())
 	}
 
-	DataBase.DB = db
+	return db
 }

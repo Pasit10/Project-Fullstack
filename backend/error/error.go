@@ -111,6 +111,7 @@ var (
 	EmailAlreadyExistError   TemplateError = New("Email_already_exist_Error")
 	MissingOrMalformedToken  TemplateError = New("Missing_or_malformed_token")
 	InvalidOrExpiredToken    TemplateError = New("Invalid_or_expired_token")
+	EmailInvaildFormatError  TemplateError = New("Email_invelid_format")
 )
 
 var HttpStatusCodes = map[error]int{
@@ -123,11 +124,13 @@ var HttpStatusCodes = map[error]int{
 	EmailAlreadyExistError:   400,
 	MissingOrMalformedToken:  401,
 	InvalidOrExpiredToken:    401,
+	EmailInvaildFormatError:  400,
 }
 
 var CodesError = map[error]string{
 	BadrequestError:          "4000",
 	EmailAlreadyExistError:   "4001",
+	EmailInvaildFormatError:  "4002",
 	UnauthorizedError:        "4010",
 	WrongUserOrPasswordError: "4011",
 	MissingOrMalformedToken:  "4012",
@@ -146,6 +149,7 @@ var ThaiDescription = map[error]string{
 	EmailAlreadyExistError:   "อีเมลนี้มีอยู่แล้ว",
 	MissingOrMalformedToken:  "ขาดหรือรูปแบบโทเคนไม่ถูกต้อง",
 	InvalidOrExpiredToken:    "โทเคนไม่ถูกต้องหรือหมดอายุ",
+	EmailInvaildFormatError:  "รูปแบบ email ไม่ถูกต้อง",
 }
 
 var EnglishDescription = map[error]string{
@@ -158,6 +162,7 @@ var EnglishDescription = map[error]string{
 	EmailAlreadyExistError:   "Email already exist",
 	MissingOrMalformedToken:  "Missing or malformed token",
 	InvalidOrExpiredToken:    "Invalid or expired token",
+	EmailInvaildFormatError:  "Email invalid format",
 }
 
 func GetErrorResponse(err error) (int, HttpErrorResponse) {

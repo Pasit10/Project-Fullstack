@@ -1,25 +1,33 @@
-package authenticaion
+package services
 
 import (
 	templateError "backend/error"
-	"backend/utils"
+	"backend/internal/entities"
+	"backend/internal/repositories"
+	"backend/pkg/utils"
 	"errors"
 	"fmt"
 	"net/mail"
 )
 
-type AuthenLogic struct {
-	AuthenRepository *AuthenRepository
+type authService struct {
+	AuthRepository repositories.IAuthRepository
 }
 
-func (al *AuthenLogic) InitAuthenLogic() *AuthenLogic {
-	repo := &AuthenRepository{}
-	return &AuthenLogic{
-		AuthenRepository: repo.InitAuthenRepository(),
+type IAuthService interface {
+	Login(userData entities.UserLogin) (isValid bool, user *entities.User, err error)
+	Register(userData entities.User) (err error)
+	RegisterGoogle(userData entities.User) (err error)
+	GetUserByUID(uid string) (user *entities.User, err error)
+}
+
+func InitAuthenService(repo repositories.IAuthRepository) IAuthService {
+	return &authService{
+		AuthRepository: repo,
 	}
 }
 
-func (al *AuthenLogic) LoginLogic(userData UserLogin) (isValid bool, user *User, err error) {
+func (ser authService) Login(userData entities.UserLogin) (isValid bool, user *entities.User, err error) {
 	if userData.Email == "" {
 		return false, nil, templateError.BadrequestError
 	}
@@ -29,7 +37,7 @@ func (al *AuthenLogic) LoginLogic(userData UserLogin) (isValid bool, user *User,
 	if userData.Password == "" {
 		return false, nil, templateError.BadrequestError
 	}
-	user, err = al.AuthenRepository.GetUser(userData.Email)
+	user, err = ser.AuthRepository.GetUser(userData.Email)
 	if err != nil {
 		if errors.Is(err, templateError.UsernotfoundError) {
 			return false, nil, templateError.WrongUserOrPasswordError
@@ -37,6 +45,9 @@ func (al *AuthenLogic) LoginLogic(userData UserLogin) (isValid bool, user *User,
 			fmt.Println(err)
 			return false, nil, err
 		}
+	}
+	if user.Password == "" {
+		return false, nil, nil
 	}
 	isValid, err = utils.VerifyPassword(userData.Password, user.Password)
 	if err != nil {
@@ -49,17 +60,17 @@ func (al *AuthenLogic) LoginLogic(userData UserLogin) (isValid bool, user *User,
 	return
 }
 
-func (al *AuthenLogic) RegisterLogic(userData User) (err error) {
+func (ser authService) Register(userData entities.User) (err error) {
 	if userData.Email == "" {
 		return templateError.BadrequestError
 	}
 	if _, err := mail.ParseAddress(userData.Email); err != nil {
-		return errors.New("invalid email format")
+		return templateError.EmailInvaildFormatError
 	}
 	if userData.Password == "" {
 		return templateError.BadrequestError
 	}
-	_, err = al.AuthenRepository.GetUser(userData.Email)
+	_, err = ser.AuthRepository.GetUser(userData.Email)
 	if !errors.Is(err, templateError.UsernotfoundError) {
 		return templateError.EmailAlreadyExistError
 	}
@@ -72,7 +83,7 @@ func (al *AuthenLogic) RegisterLogic(userData User) (err error) {
 	}
 	userData.Password = hashedPassword
 
-	err = al.AuthenRepository.CreateUser(userData)
+	err = ser.AuthRepository.CreateUser(userData)
 	if err != nil {
 		fmt.Println(err)
 		return err
@@ -80,19 +91,19 @@ func (al *AuthenLogic) RegisterLogic(userData User) (err error) {
 	return
 }
 
-func (al *AuthenLogic) RegisterGoogleLogic(userData User) (err error) {
+func (ser authService) RegisterGoogle(userData entities.User) (err error) {
 	if userData.Email == "" {
 		return templateError.BadrequestError
 	}
 	if _, err := mail.ParseAddress(userData.Email); err != nil {
-		return errors.New("invalid email format")
+		return templateError.EmailInvaildFormatError
 	}
-	_, err = al.AuthenRepository.GetUser(userData.Email)
+	_, err = ser.AuthRepository.GetUser(userData.Email)
 	if !errors.Is(err, templateError.UsernotfoundError) {
 		return templateError.EmailAlreadyExistError
 	}
 
-	err = al.AuthenRepository.CreateUser(userData)
+	err = ser.AuthRepository.CreateUser(userData)
 	if err != nil {
 		fmt.Println(err)
 		return err
@@ -100,8 +111,8 @@ func (al *AuthenLogic) RegisterGoogleLogic(userData User) (err error) {
 	return
 }
 
-func (al *AuthenLogic) GetUserByUID(uid string) (user *User, err error) {
-	user, err = al.AuthenRepository.GetUserByUID(uid)
+func (ser authService) GetUserByUID(uid string) (user *entities.User, err error) {
+	user, err = ser.AuthRepository.GetUserByUID(uid)
 	if err != nil {
 		return nil, err
 	}
