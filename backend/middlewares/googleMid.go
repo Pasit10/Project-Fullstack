@@ -3,6 +3,7 @@ package middlewares
 import (
 	"context"
 	"log"
+	"os"
 
 	"github.com/gofiber/fiber/v2"
 	"google.golang.org/api/idtoken"
@@ -21,7 +22,7 @@ func SetverifyGoogleTokenMiddleware(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Token is required"})
 	}
 
-	payload, err := idtoken.Validate(context.Background(), req.Token, "")
+	payload, err := idtoken.Validate(context.Background(), req.Token, os.Getenv("GOOGLE_CLIENT_ID"))
 	if err != nil {
 		log.Println("Token verification failed:", err)
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})

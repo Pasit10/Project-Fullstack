@@ -19,7 +19,7 @@ const Login = () => {
       const response = await axiosInstant.post("/login",{
         email,
         password
-      },{ withCredentials: true });
+      },{ withCredentials: true }); // call backend
 
       if(response.status === 200){
         console.log("User login successfully:", response.data);
